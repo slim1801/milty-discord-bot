@@ -133,7 +133,7 @@ export async function generateSliceImages(slices) {
     );
   });
 
-  fs.promises.writeFile("output.png", await masterCanvas.encode("png"));
+  // fs.promises.writeFile("output.png", await masterCanvas.encode("png"));
 
   return {
     unslicedCanvases,

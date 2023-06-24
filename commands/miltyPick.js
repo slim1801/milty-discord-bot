@@ -11,9 +11,9 @@ import { client } from "../client.js";
 import { FACTION_DETAILS_MAP } from "../constants/factions.js";
 import { SPEAKER } from "../constants/speaker.js";
 import { SLICES } from "../constants/slices.js";
-import { STORE } from "./store.js";
-import { pickMessage } from "./pickMessage.js";
-import { summaryMessage } from "./summaryMessage.js";
+import { pickMessage } from "../functions/pickMessage.js";
+import { summaryMessage } from "../functions/summaryMessage.js";
+import { getState } from "../functions/getState.js";
 import {
   getFactionEmoji,
   getSliceEmoji,
@@ -24,6 +24,7 @@ import {
   getRemainingSlices,
   getRemainingSpeakerPositions,
 } from "../utils/remainingSelections.js";
+import { generateFinalMap } from "../functions/generateFinalMap.js";
 
 export const miltyPickCommand = new SlashCommandBuilder()
   .setName("milty_pick")
@@ -81,13 +82,20 @@ client.on(
       if (interaction.channel?.type !== ChannelType.PublicThread) {
         return;
       }
-      const store = STORE[interaction.channel?.id];
+      const threadId = interaction.channel.id;
+
+      const { collection, store } = await getState(threadId);
+
       if (!store) {
         return;
       }
       const { draftRound, draftPosition } = store;
-      const playerId = interaction.member.user.id;
+
       if (interaction.member.user.id !== store.players[draftPosition]) {
+        api.interactions.reply(interaction.id, interaction.token, {
+          content: "Not your turn to pick",
+          flags: MessageFlags.Ephemeral,
+        });
         return;
       }
 
@@ -101,6 +109,26 @@ client.on(
         (option) => option.name === "speaker"
       );
 
+      if (!slice && !faction && !speaker) {
+        await api.interactions.reply(interaction.id, interaction.token, {
+          content: `Please select a speaker/slice/faction`,
+          flags: MessageFlags.Ephemeral,
+        });
+        return;
+      }
+
+      if (
+        (store.playerSelections[draftPosition].slice && slice) ||
+        (store.playerSelections[draftPosition].faction && faction) ||
+        (store.playerSelections[draftPosition].speaker && speaker)
+      ) {
+        await api.interactions.reply(interaction.id, interaction.token, {
+          content: `Already picked`,
+          flags: MessageFlags.Ephemeral,
+        });
+        return;
+      }
+
       const remainingSlices = getRemainingSlices(store);
       const remainingFactions = getRemainingFactions(store);
       const remainingSpeakers = getRemainingSpeakerPositions(store);
@@ -111,7 +139,7 @@ client.on(
       } else if (faction && remainingFactions.indexOf(faction.value) < 0) {
         error = getFactionEmoji(faction.value);
       } else if (speaker && remainingSpeakers.indexOf(speaker.value) < 0) {
-        error = getSpeakerEmoji(faction.value);
+        error = getSpeakerEmoji(speaker.value);
       }
 
       if (error) {
@@ -122,15 +150,15 @@ client.on(
         return;
       }
 
-      store.playerSelections[playerId] = {
-        ...store.playerSelections[playerId],
+      store.playerSelections[draftPosition] = {
+        ...store.playerSelections[draftPosition],
         ...(slice?.value && { slice: slice.value }),
         ...(faction?.value && { faction: faction.value }),
         ...(speaker?.value && { speakerPosition: speaker.value }),
       };
 
       // Iterate draft
-      if (draftRound === 0 || draftRound === 3) {
+      if (draftRound === 0 || draftRound === 2) {
         if (draftPosition < store.players.length - 1) {
           store.draftPosition++;
         } else {
@@ -144,15 +172,33 @@ client.on(
         }
       }
 
-      const yourPickMessage = pickMessage(store, playerId);
-
       const editedSummaryMessage = summaryMessage(store);
 
-      await api.channels.editMessage(interaction.channel.id, store.messageId, {
+      // Final Map
+      if (store.draftRound > 2) {
+        // Keleres exception
+        const keleres = store.playerSelections.find(
+          (playerSelection) => playerSelection.faction === "keleres"
+        );
+        if (keleres) {
+          await api.channels.createMessage(threadId, {
+            content:
+              "Please pick a keleres home systaem\nUse command `keleres_pick`",
+          });
+          return;
+        }
+        return await generateFinalMap({ data: interaction, api }, store);
+      }
+
+      const yourPickMessage = pickMessage(store);
+
+      collection.updateOne({ _id: store._id }, { $set: store });
+
+      await api.channels.editMessage(threadId, store.messageId, {
         content: editedSummaryMessage,
       });
 
-      await api.channels.createMessage(interaction.channel.id, {
+      await api.channels.createMessage(threadId, {
         content: yourPickMessage,
       });
 

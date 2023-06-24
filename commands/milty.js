@@ -10,13 +10,12 @@ import { SlashCommandBuilder } from "@discordjs/builders";
 import { client } from "../client.js";
 import { FACTION_DETAILS_MAP } from "../constants/factions.js";
 import { shuffleArray } from "../utils/shuffleArray.js";
-import { STORE } from "./store.js";
 import { SLICES } from "../constants/slices.js";
-import { pickMessage } from "./pickMessage.js";
-import { summaryMessage } from "./summaryMessage.js";
-import { generateSlices } from "./generateSlices.js";
-import { generateSliceImages } from "./generateSliceImages.js";
-import { AttachmentBuilder } from "discord.js";
+import { pickMessage } from "../functions/pickMessage.js";
+import { summaryMessage } from "../functions/summaryMessage.js";
+import { generateSlices } from "../functions/generateSlices.js";
+import { generateSliceImages } from "../functions/generateSliceImages.js";
+import { dbClient } from "../db.js";
 
 export const miltyCommand = new SlashCommandBuilder()
   .setName("milty")
@@ -117,15 +116,14 @@ client.on(
         draftPosition: 0,
         draftRound: 0,
         players: shuffledPlayers,
+        keleres: null,
         slices: [...SLICES].slice(0, numSlices),
-        playerSelections: shuffledPlayers.reduce((acc, val) => {
-          acc[val] = {
-            speakerPosition: null,
-            slice: null,
-            faction: null,
-          };
-          return acc;
-        }, {}),
+        playerSelections: shuffledPlayers.map((playerId) => ({
+          playerId,
+          speakerPosition: null,
+          slice: null,
+          faction: null,
+        })),
       };
 
       let mapSlices;
@@ -165,14 +163,18 @@ client.on(
         files: [{ data: buffer, name: "slices.png" }],
       });
 
+      state.threadId = thread.id;
+      state.messageId = message.id;
+      state.mapSlices = mapSlices;
+      const collection = dbClient.db("milty-draft").collection("draft");
+      await collection.insertOne(state);
+
       const yourPickMessage = pickMessage(state);
 
       await api.channels.createMessage(thread.id, {
         content: yourPickMessage,
       });
 
-      state.messageId = message.id;
-      STORE[thread.id] = state;
       return;
     }
   }

@@ -2,11 +2,11 @@ import { SPEAKER } from "../constants/speaker.js";
 
 export const remainingSelections = (playerSelections, totalSelections, key) => {
   const remaining = [...totalSelections];
-  Object.keys(playerSelections).forEach((player) => {
-    const selection = playerSelections[player][key];
+  playerSelections.forEach((_, index) => {
+    const selection = playerSelections[index][key];
     if (selection) {
       const index = remaining.findIndex((val) => val === selection);
-      if (index > 0) {
+      if (index >= 0) {
         remaining.splice(index, 1);
       }
     }

@@ -1,4 +1,3 @@
-import { SPEAKER } from "../constants/speaker.js";
 import {
   getFactionEmoji,
   getSliceEmoji,
@@ -10,7 +9,7 @@ import {
   getRemainingSpeakerPositions,
 } from "../utils/remainingSelections.js";
 
-export const pickMessage = (store, playerId) => {
+export const pickMessage = (store) => {
   const yourPickText = `Your turn to pick <@${
     store.players[store.draftPosition]
   }>`;
@@ -31,14 +30,16 @@ export const pickMessage = (store, playerId) => {
   const remainingSlicesText =
     "Slices: " + sliceSelections.map((slice) => getSliceEmoji(slice)).join(" ");
 
+  const playerIndex = store.draftPosition;
+
   const totalText = [yourPickText];
-  if (!store.playerSelections[playerId]?.speakerPosition) {
+  if (!store.playerSelections[playerIndex]?.speakerPosition) {
     totalText.push(remainingSpeakerText);
   }
-  if (!store.playerSelections[playerId]?.slice) {
+  if (!store.playerSelections[playerIndex]?.slice) {
     totalText.push(remainingSlicesText);
   }
-  if (!store.playerSelections[playerId]?.faction) {
+  if (!store.playerSelections[playerIndex]?.faction) {
     totalText.push(remainingFactionsText);
   }
 

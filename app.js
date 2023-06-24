@@ -1,14 +1,12 @@
-import { SlashCommandBuilder } from "@discordjs/builders";
-import { AttachmentBuilder } from "discord.js";
-import {
-  GatewayDispatchEvents,
-  Routes,
-  InteractionType,
-} from "@discordjs/core";
+import { GatewayDispatchEvents, Routes } from "@discordjs/core";
 
 import { miltyCommand } from "./commands/milty.js";
 import { miltyPickCommand } from "./commands/miltyPick.js";
+import { keleresPickCommand } from "./commands/keleresPick.js";
 import { rest, gateway, client } from "./client.js";
+import { run } from "./db.js";
+
+run();
 
 const guildId = process.env.GUILD_ID;
 const clientId = process.env.CLIENT_ID;
@@ -17,7 +15,7 @@ const clientId = process.env.CLIENT_ID;
 client.once(GatewayDispatchEvents.Ready, () => console.log("Ready!"));
 
 async function main() {
-  const commands = [miltyCommand, miltyPickCommand];
+  const commands = [keleresPickCommand, miltyCommand, miltyPickCommand];
   try {
     await rest.put(Routes.applicationGuildCommands(clientId, guildId), {
       body: commands,

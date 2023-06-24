@@ -98,7 +98,7 @@ export const FACTION_DETAILS_MAP = {
   yssaril: {
     id: "yssaril",
     name: "The Yssaril Tribes",
-    emojiId: "1118489529981091940",
+    emojiId: "1118489538503901185",
     hs: 15,
   },
   argent: {

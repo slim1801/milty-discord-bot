@@ -24,7 +24,7 @@ export const summaryMessage = (store) => {
   const { players, factions, playerSelections } = store;
   const draftOrder = players
     .map((playerId, index) => {
-      const playerSelection = playerSelections[playerId];
+      const playerSelection = playerSelections[index];
       const speakerSelection = playerSelection.speakerPosition
         ? getSpeakerEmoji(playerSelection.speakerPosition)
         : COMMODITY_EMOJI;
