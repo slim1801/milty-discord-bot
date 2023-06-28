@@ -8,9 +8,17 @@ import {
   SLICES,
 } from "../constants/slices.js";
 import { cloneCanvas } from "../utils/cloneCanvas.js";
-import { hsTranslation, hexTranslations } from "../utils/translations.js";
+import { defaultHexTranslation, HEX_BOTTOM } from "../utils/translations.js";
+import { addRotation } from "../utils/addRotation.js";
 
-async function generateSlice(hsImage, slice, index) {
+async function generateSlice(
+  hsImage,
+  slice,
+  hexPositionsFunctions,
+  hsTranslation,
+  rotations,
+  index
+) {
   // TODO: Render on load of JS
   const results = await Promise.allSettled(
     slice.map((slice) => loadImage(`tiles/sys_${slice}.png`))
@@ -18,21 +26,23 @@ async function generateSlice(hsImage, slice, index) {
 
   const images = results.map((result) => result.value);
 
-  const fullWidth = Math.ceil(images[0].width * 2.5);
-  const fullHeight = images[0].height * 3;
+  const baseWidth = images[0].width;
+  const baseHeight = images[0].height;
+
+  const fullWidth = Math.ceil(baseWidth * 2.5);
+  const fullHeight = baseHeight * 3;
   const baseCanvas = createCanvas(fullWidth, fullHeight);
 
   const context = baseCanvas.getContext("2d");
 
-  const baseWidth = images[0].width;
-  const baseHeight = images[0].height;
-
-  const hexPositions = hexTranslations(baseWidth, baseHeight);
-
-  hexPositions.forEach((hex, index) => {
+  hexPositionsFunctions.forEach((hexPositionsFunc, index) => {
     const img = images[index];
+    const hex = hexPositionsFunc(baseWidth, baseHeight);
+
+    const rotatedImage = addRotation(img, rotations?.[index]);
+
     context.drawImage(
-      img,
+      rotatedImage,
       0,
       0,
       img.width,
@@ -49,6 +59,7 @@ async function generateSlice(hsImage, slice, index) {
   const slicedContext = imageWithHSAndTextCanvas.getContext("2d");
 
   const hsPosition = hsTranslation(baseWidth, baseHeight);
+
   slicedContext.drawImage(
     hsImage,
     0,
@@ -102,14 +113,28 @@ async function generateSlice(hsImage, slice, index) {
   };
 }
 
-export async function generateSliceImages(slices) {
+export async function generateSliceImages(
+  slices,
+  hexTransforms,
+  hsTranslation,
+  rotations
+) {
   const masterWidth = Math.ceil(slices.length / 2) * 1800;
   const masterCanvas = createCanvas(masterWidth, 4000);
 
   const HSImage = await loadImage(`tiles/sys_0.png`);
 
   const imageSlices = await Promise.allSettled(
-    slices.map((slice, index) => generateSlice(HSImage, slice, index))
+    slices.map((slice, index) =>
+      generateSlice(
+        HSImage,
+        slice,
+        hexTransforms[index] || defaultHexTranslation,
+        hsTranslation[index] || HEX_BOTTOM,
+        rotations[index],
+        index
+      )
+    )
   );
 
   const canvases = imageSlices.map((imgSlice) => imgSlice.value.sliced);
@@ -133,7 +158,7 @@ export async function generateSliceImages(slices) {
     );
   });
 
-  // fs.promises.writeFile("output.png", await masterCanvas.encode("png"));
+  fs.promises.writeFile("output.png", await masterCanvas.encode("png"));
 
   return {
     unslicedCanvases,

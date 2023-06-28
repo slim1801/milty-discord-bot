@@ -35,6 +35,11 @@ export const miltyCommand = new SlashCommandBuilder()
   );
 });
 
+// Name of Thread for draft
+miltyCommand.addStringOption((option) =>
+  option.setName("name").setDescription("Name the thread for the draft")
+);
+
 // Add number of slices
 miltyCommand.addNumberOption((option) =>
   option
@@ -151,9 +156,13 @@ client.on(
 
       const { sliceDraft } = await generateSliceImages(mapSlices);
 
+      const draftName = interaction.data.options?.find(
+        (option) => option.name === "name"
+      );
+
       const thread = await api.threads.create(interaction.channel.id, {
         type: ChannelType.PublicThread,
-        name: "Milty draft",
+        name: draftName.value || "Milty draft",
       });
 
       const buffer = await sliceDraft.encode("png");

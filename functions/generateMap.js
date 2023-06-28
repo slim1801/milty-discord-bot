@@ -2,9 +2,15 @@ import { createCanvas, loadImage } from "@napi-rs/canvas";
 import { FACTION_DETAILS_MAP } from "../constants/factions.js";
 import * as fs from "fs";
 import { generateSliceImages } from "./generateSliceImages.js";
-import { hsTranslation } from "../utils/translations.js";
+import {
+  hsTranslation,
+  finalMapTranslations,
+  homeSystemTranslations,
+} from "../utils/translations.js";
+import { addRotation } from "../utils/addRotation.js";
 
 const state = {
+  players: [1, 2, 3, 4, 5, 6],
   mapSlices: [
     [69, 22, 44, 42, 31],
     [62, 26, 67, 47, 29],
@@ -34,31 +40,31 @@ const state = {
       slice: "g",
       faction: "nekro",
     },
-    {
-      playerId: "slim4",
-      speakerPosition: 1,
-      slice: "f",
-      faction: "mentak",
-    },
-    {
-      playerId: "slim5",
-      speakerPosition: 5,
-      slice: "b",
-      faction: "mentak",
-    },
-    {
-      playerId: "slim6",
-      speakerPosition: 3,
-      slice: "d",
-      faction: "mentak",
-    },
+    // {
+    //   playerId: "slim4",
+    //   speakerPosition: 1,
+    //   slice: "f",
+    //   faction: "mentak",
+    // },
+    // {
+    //   playerId: "slim5",
+    //   speakerPosition: 5,
+    //   slice: "b",
+    //   faction: "mentak",
+    // },
+    // {
+    //   playerId: "slim6",
+    //   speakerPosition: 3,
+    //   slice: "d",
+    //   faction: "mentak",
+    // },
   ],
 };
 
 const mapPositions = (width, height) => {
   return [
     {
-      rotation: Math.PI,
+      // rotation: Math.PI,
       x: 2 * width,
       y: 0,
       textX: 3.25 * width,
@@ -67,7 +73,7 @@ const mapPositions = (width, height) => {
       textOffsetY: -50,
     },
     {
-      rotation: Math.PI * (1 + 1 / 3),
+      // rotation: Math.PI * (1 + 1 / 3),
       x: 3.5 * width,
       y: height,
       textX: 5.25 * width,
@@ -76,7 +82,7 @@ const mapPositions = (width, height) => {
       textOffsetY: -50,
     },
     {
-      rotation: Math.PI * (1 + 2 / 3),
+      // rotation: Math.PI * (1 + 2 / 3),
       x: 3.5 * width,
       y: 3 * height,
       textX: 5.25 * width,
@@ -85,7 +91,7 @@ const mapPositions = (width, height) => {
       textOffsetY: 200,
     },
     {
-      rotation: 0,
+      // rotation: 0,
       x: 2 * width,
       y: 4 * height,
       textX: 3.25 * width,
@@ -94,7 +100,7 @@ const mapPositions = (width, height) => {
       textOffsetY: 200,
     },
     {
-      rotation: Math.PI / 3,
+      // rotation: Math.PI / 3,
       x: width * 0.5,
       y: 3 * height,
       textX: 1.25 * width,
@@ -103,7 +109,7 @@ const mapPositions = (width, height) => {
       textOffsetY: 200,
     },
     {
-      rotation: Math.PI * (2 / 3),
+      // rotation: Math.PI * (2 / 3),
       x: width * 0.5,
       y: height,
       textX: 1.25 * width,
@@ -114,16 +120,136 @@ const mapPositions = (width, height) => {
   ];
 };
 
-export async function generateMap(state, slices, playerNames) {
+const addHyperLanes = (slices) => {
+  if (slices.length === 3) {
+    return [
+      [slices[0][0], slices[0][1], slices[0][2], "88A", slices[0][4]],
+      ["84A", slices[0][4], "83A", "87A", "85A"],
+      [slices[1][0], slices[1][1], slices[1][2], "88A", slices[1][4]],
+      ["84A", slices[1][3], "83A", "87A", "85A"],
+      [slices[1][0], slices[1][1], slices[1][2], "88A", slices[1][4]],
+      ["84A", slices[1][3], "83A", "87A", "85A"],
+    ];
+  }
+  if (slices.length === 4) {
+    return [
+      slices[0],
+      [slices[1][0], slices[1][1], slices[1][2], "88A", slices[1][4]],
+      ["84A", slices[1][3], "83A", "87A", "85A"],
+      slices[2],
+      [slices[3][0], slices[3][1], slices[3][2], "88A", slices[3][4]],
+      ["84A", slices[3][3], "83A", "87A", "85A"],
+    ];
+  }
+  if (slices.length === 5) {
+    return [
+      slices[0],
+      slices[1],
+      [slices[2][0], slices[2][1], slices[2][2], "88A", slices[2][4]],
+      ["84A", slices[2][3], "83A", "87A", "85A"],
+      slices[3],
+      slices[4],
+    ];
+  }
+  return slices;
+};
+
+const addHyperLaneHS = (factions) => {
+  if (factions.length === 3) {
+    return [factions[0], "86A", factions[1], "86A", factions[2], "86A"];
+  }
+  if (factions.length === 4) {
+    return [factions[0], factions[1], "86A", factions[2], factions[3], "86A"];
+  }
+  if (factions.length === 5) {
+    return [
+      factions[0],
+      factions[1],
+      factions[2],
+      "86A",
+      factions[3],
+      factions[4],
+    ];
+  }
+  return factions;
+};
+
+const addHyperLaneRotation = (numPlayers) => {
+  if (numPlayers === 3) {
+    return [
+      [undefined, undefined, undefined, (-Math.PI * 2) / 3, undefined],
+      [
+        (-Math.PI * 2) / 3,
+        undefined,
+        (-Math.PI * 2) / 3,
+        (-Math.PI * 2) / 3,
+        (-Math.PI * 2) / 3,
+      ],
+      undefined,
+      undefined,
+      [undefined, undefined, undefined, (Math.PI * 2) / 3, undefined],
+      [
+        (Math.PI * 2) / 3,
+        undefined,
+        (Math.PI * 2) / 3,
+        (Math.PI * 2) / 3,
+        (Math.PI * 2) / 3,
+      ],
+    ];
+  }
+  if (numPlayers === 4) {
+    return [
+      undefined,
+      [undefined, undefined, undefined, -Math.PI / 3, undefined],
+      [-Math.PI / 3, undefined, -Math.PI / 3, -Math.PI / 3, -Math.PI / 3],
+      undefined,
+      [undefined, undefined, undefined, (Math.PI * 2) / 3, undefined],
+      [
+        (Math.PI * 2) / 3,
+        undefined,
+        (Math.PI * 2) / 3,
+        (Math.PI * 2) / 3,
+        (Math.PI * 2) / 3,
+      ],
+    ];
+  }
+};
+
+const addHSRotation = (numPlayers) => {
+  if (numPlayers === 3) {
+    return [
+      undefined,
+      (-Math.PI * 2) / 3,
+      undefined,
+      undefined,
+      undefined,
+      (Math.PI * 2) / 3,
+    ];
+  }
+  if (numPlayers === 4) {
+    return [
+      undefined,
+      undefined,
+      -Math.PI / 3,
+      undefined,
+      undefined,
+      (Math.PI * 2) / 3,
+    ];
+  }
+};
+
+export async function generateMap(state, playerNames) {
   const sortedSpeaker = state.playerSelections.sort(
     (playerA, playerB) => playerA.speakerPosition - playerB.speakerPosition
   );
 
-  const selectedFactions = sortedSpeaker.map((player) => player.faction);
+  const selectedFactions = addHyperLaneHS(
+    sortedSpeaker.map((player) => player.faction)
+  );
 
   const HSImages = await Promise.allSettled(
     selectedFactions.map((faction) => {
-      let hsNumber = FACTION_DETAILS_MAP[faction].hs;
+      let hsNumber = FACTION_DETAILS_MAP[faction]?.hs || faction;
 
       // Keleres exception
       if (faction === "keleres") {
@@ -184,14 +310,32 @@ export async function generateMap(state, slices, playerNames) {
 
   const selectedSlices = sortedSpeaker.map((player) => player.slice);
 
-  const sliceImages = selectedSlices.map((slice, sortedIndex) => {
-    const index = slice.charCodeAt(0) - "a".charCodeAt(0);
+  const selectedMapSlices = selectedSlices.map((slice) => {
+    const mapSliceIndex = slice.charCodeAt(0) - "a".charCodeAt(0);
+    return state.mapSlices[mapSliceIndex];
+  });
 
-    const hsImage = hsImages[sortedIndex];
+  const hyperlanedSlices = addHyperLanes(selectedMapSlices);
 
-    const hsPosition = hsTranslation(hsImage.width, hsImage.height);
+  const { unslicedCanvases } = await generateSliceImages(
+    hyperlanedSlices,
+    finalMapTranslations,
+    homeSystemTranslations,
+    addHyperLaneRotation(sortedSpeaker.length)
+  );
 
-    const sliceImage = slices[index];
+  // Add Home System
+  const sliceImages = unslicedCanvases.map((sliceImage, sortedIndex) => {
+    const hsImage = addRotation(
+      hsImages[sortedIndex],
+      addHSRotation(sortedSpeaker.length)?.[sortedIndex]
+    );
+
+    const hsPosition = homeSystemTranslations[sortedIndex](
+      hsImage.width,
+      hsImage.height
+    );
+
     const sliceImageContext = sliceImage.getContext("2d");
 
     sliceImageContext.drawImage(
@@ -209,38 +353,20 @@ export async function generateMap(state, slices, playerNames) {
     return sliceImage;
   });
 
+  // Position on Map
   sliceImages.forEach((sliceImage, index) => {
-    const sliceCanvas = createCanvas(sliceImage.width, sliceImage.height);
-    const sliceCanvasContext = sliceCanvas.getContext("2d");
-
     const mapPosition = mapPositions(hsImage.width, hsImage.height);
 
-    sliceCanvasContext.translate(sliceImage.width / 2, sliceImage.height / 2);
-    sliceCanvasContext.rotate(mapPosition[index].rotation);
-    sliceCanvasContext.translate(-sliceImage.width / 2, -sliceImage.height / 2);
-
-    sliceCanvasContext.drawImage(
+    mapCanvasContext.drawImage(
       sliceImage,
       0,
       0,
       sliceImage.width,
       sliceImage.height,
-      0,
-      0,
-      sliceImage.width,
-      sliceImage.height
-    );
-
-    mapCanvasContext.drawImage(
-      sliceCanvas,
-      0,
-      0,
-      sliceCanvas.width,
-      sliceCanvas.height,
       mapPosition[index].x,
       mapPosition[index].y + heightOffset,
-      sliceCanvas.width,
-      sliceCanvas.height
+      sliceImage.width,
+      sliceImage.height
     );
 
     mapCanvasContext.font = "150px Impact";
@@ -256,9 +382,9 @@ export async function generateMap(state, slices, playerNames) {
   return mapCanvas;
 }
 
-(async function (state) {
-  const { unslicedCanvases } = await generateSliceImages(state.mapSlices);
-  const generatedMap = await generateMap(state, unslicedCanvases);
+// (async function (state) {
+//   const generatedMap = await generateMap(state);
 
-  fs.promises.writeFile(`map.png`, await generatedMap.encode("png"));
-})(state);
+//   fs.promises.writeFile(`map.png`, await generatedMap.encode("png"));
+//   console.log("FINISHED GENERATING MAP");
+// })(state);
