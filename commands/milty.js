@@ -162,7 +162,7 @@ client.on(
 
       const thread = await api.threads.create(interaction.channel.id, {
         type: ChannelType.PublicThread,
-        name: draftName.value || "Milty draft",
+        name: draftName?.value || "Milty draft",
       });
 
       const buffer = await sliceDraft.encode("png");

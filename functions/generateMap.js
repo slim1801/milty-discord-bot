@@ -3,7 +3,6 @@ import { FACTION_DETAILS_MAP } from "../constants/factions.js";
 import * as fs from "fs";
 import { generateSliceImages } from "./generateSliceImages.js";
 import {
-  hsTranslation,
   finalMapTranslations,
   homeSystemTranslations,
 } from "../utils/translations.js";
@@ -40,18 +39,18 @@ const state = {
       slice: "g",
       faction: "nekro",
     },
-    // {
-    //   playerId: "slim4",
-    //   speakerPosition: 1,
-    //   slice: "f",
-    //   faction: "mentak",
-    // },
-    // {
-    //   playerId: "slim5",
-    //   speakerPosition: 5,
-    //   slice: "b",
-    //   faction: "mentak",
-    // },
+    {
+      playerId: "slim4",
+      speakerPosition: 1,
+      slice: "f",
+      faction: "mentak",
+    },
+    {
+      playerId: "slim5",
+      speakerPosition: 5,
+      slice: "b",
+      faction: "mentak",
+    },
     // {
     //   playerId: "slim6",
     //   speakerPosition: 3,
@@ -238,6 +237,34 @@ const addHSRotation = (numPlayers) => {
   }
 };
 
+const nameMapping = (index, numPlayers) => {
+  if (index === 0) {
+    return 0;
+  }
+  if (numPlayers === 3) {
+    return {
+      2: 1,
+      4: 2,
+    }[index];
+  }
+  if (numPlayers === 4) {
+    return {
+      1: 1,
+      3: 2,
+      4: 3,
+    }[index];
+  }
+  if (numPlayers === 5) {
+    return {
+      1: 1,
+      2: 2,
+      4: 3,
+      5: 4,
+    }[index];
+  }
+  return index;
+};
+
 export async function generateMap(state, playerNames) {
   const sortedSpeaker = state.playerSelections.sort(
     (playerA, playerB) => playerA.speakerPosition - playerB.speakerPosition
@@ -369,14 +396,17 @@ export async function generateMap(state, playerNames) {
       sliceImage.height
     );
 
-    mapCanvasContext.font = "150px Impact";
-    mapCanvasContext.fillStyle = "white";
-    mapCanvasContext.textAlign = mapPosition[index].textAlign;
-    mapCanvasContext.fillText(
-      playerNames?.[index] || "Name " + index,
-      mapPosition[index].textX,
-      mapPosition[index].textY + mapPosition[index].textOffsetY + heightOffset
-    );
+    const nameIndex = nameMapping(index, sortedSpeaker.length);
+    if (nameIndex !== undefined) {
+      mapCanvasContext.font = "150px Impact";
+      mapCanvasContext.fillStyle = "white";
+      mapCanvasContext.textAlign = mapPosition[index].textAlign;
+      mapCanvasContext.fillText(
+        playerNames?.[nameIndex] || "Name " + nameIndex,
+        mapPosition[index].textX,
+        mapPosition[index].textY + mapPosition[index].textOffsetY + heightOffset
+      );
+    }
   });
 
   return mapCanvas;

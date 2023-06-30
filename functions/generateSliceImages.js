@@ -129,9 +129,9 @@ export async function generateSliceImages(
       generateSlice(
         HSImage,
         slice,
-        hexTransforms[index] || defaultHexTranslation,
-        hsTranslation[index] || HEX_BOTTOM,
-        rotations[index],
+        hexTransforms?.[index] || defaultHexTranslation,
+        hsTranslation?.[index] || HEX_BOTTOM,
+        rotations?.[index],
         index
       )
     )
