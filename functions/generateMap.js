@@ -51,12 +51,12 @@ const state = {
       slice: "b",
       faction: "mentak",
     },
-    // {
-    //   playerId: "slim6",
-    //   speakerPosition: 3,
-    //   slice: "d",
-    //   faction: "mentak",
-    // },
+    {
+      playerId: "slim6",
+      speakerPosition: 3,
+      slice: "d",
+      faction: "mentak",
+    },
   ],
 };
 

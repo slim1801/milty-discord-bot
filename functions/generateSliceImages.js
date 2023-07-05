@@ -6,10 +6,16 @@ import {
   RESU,
   INFU,
   SLICES,
+  SYSTEM_FEATURES,
 } from "../constants/slices.js";
+import { FEATURE_MAP } from "../constants/systemFeatures.js";
 import { cloneCanvas } from "../utils/cloneCanvas.js";
 import { defaultHexTranslation, HEX_BOTTOM } from "../utils/translations.js";
 import { addRotation } from "../utils/addRotation.js";
+
+const featureOffset = (featureLength) => {
+  return (featureLength / 2) * -100;
+};
 
 async function generateSlice(
   hsImage,
@@ -72,10 +78,10 @@ async function generateSlice(
     hsImage.height // destination dimensions
   );
 
-  slicedContext.font = "150px Impact";
+  slicedContext.font = "120px Impact";
   slicedContext.fillStyle = "white";
   slicedContext.textAlign = "center";
-  slicedContext.fillText(SLICES[index].toUpperCase(), center, baseHeight * 2.3);
+  slicedContext.fillText(SLICES[index].toUpperCase(), center, baseHeight * 2.2);
 
   const totalResources = slice.reduce(
     (acc, system) => acc + (RESOURCE_MAP[system] || 0),
@@ -98,14 +104,47 @@ async function generateSlice(
   slicedContext.fillText(
     `${totalResources}/${totalInfluence}`,
     center,
-    baseHeight * 2.6
+    baseHeight * 2.45
   );
 
   slicedContext.fillText(
-    `${optimalResources}/${optimalInfluence}`,
+    `(${optimalResources}/${optimalInfluence})`,
     center,
-    baseHeight * 2.9
+    baseHeight * 2.7
   );
+  const features = [];
+  slice.forEach((sliceNum) => {
+    const feature = SYSTEM_FEATURES[sliceNum];
+    if (feature) {
+      features.push(feature);
+    }
+  });
+  // Draw Features
+  const offset = featureOffset(features.length);
+
+  features.forEach((feature, index) => {
+    const featureImage = FEATURE_MAP[feature];
+    const y = baseHeight * 2.8;
+    const x = center + offset + index * 100;
+    if (featureImage) {
+      slicedContext.drawImage(
+        featureImage,
+        0,
+        0,
+        featureImage.width,
+        featureImage.height,
+        x,
+        y,
+        100,
+        100
+      );
+    } else {
+      slicedContext.font = "120px Impact";
+      slicedContext.fillStyle = feature === "a" ? "#FF8A55" : "#6FC059";
+      slicedContext.textAlign = "start";
+      slicedContext.fillText(feature, x + 25, y + 100);
+    }
+  });
 
   return {
     unsliced: baseCanvas,
@@ -158,7 +197,7 @@ export async function generateSliceImages(
     );
   });
 
-  fs.promises.writeFile("output.png", await masterCanvas.encode("png"));
+  // fs.promises.writeFile("output.png", await masterCanvas.encode("png"));
 
   return {
     unslicedCanvases,
