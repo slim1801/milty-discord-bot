@@ -9,6 +9,7 @@ import { SlashCommandBuilder } from "@discordjs/builders";
 import { client } from "../client.js";
 import { FACTION_DETAILS_MAP } from "../constants/factions.js";
 import { getState } from "../functions/getState.js";
+import { generateFinalMap } from "../functions/generateFinalMap.js";
 
 export const keleresPickCommand = new SlashCommandBuilder()
   .setName("keleres_pick")

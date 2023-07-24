@@ -2,63 +2,141 @@ import { createCanvas, loadImage } from "@napi-rs/canvas";
 import { FACTION_DETAILS_MAP } from "../constants/factions.js";
 import * as fs from "fs";
 import { generateSliceImages } from "./generateSliceImages.js";
+
+import { SPEAKER } from "../constants/speaker.js";
 import {
   finalMapTranslations,
   homeSystemTranslations,
 } from "../utils/translations.js";
 import { addRotation } from "../utils/addRotation.js";
 
-const state = {
-  players: [1, 2, 3, 4, 5, 6],
-  mapSlices: [
-    [69, 22, 44, 42, 31],
-    [62, 26, 67, 47, 29],
-    [43, 39, 36, 60, 76],
-    [65, 63, 70, 49, 68],
-    [61, 38, 41, 37, 48],
-    [30, 74, 80, 19, 45],
-    [28, 27, 50, 23, 46],
-    [59, 71, 40, 79, 72],
-  ],
-  playerSelections: [
-    {
-      playerId: "slim",
-      speakerPosition: 2,
-      slice: "c",
-      faction: "xxcha",
-    },
-    {
-      playerId: "slim2",
-      speakerPosition: 4,
-      slice: "a",
-      faction: "jolnar",
-    },
-    {
-      playerId: "slim3",
-      speakerPosition: 6,
-      slice: "g",
-      faction: "nekro",
-    },
-    {
-      playerId: "slim4",
-      speakerPosition: 1,
-      slice: "f",
-      faction: "mentak",
-    },
-    {
-      playerId: "slim5",
-      speakerPosition: 5,
-      slice: "b",
-      faction: "mentak",
-    },
-    {
-      playerId: "slim6",
-      speakerPosition: 3,
-      slice: "d",
-      faction: "mentak",
-    },
-  ],
-};
+// const state = {
+//   players: [1, 2, 3, 4, 5, 6],
+//   mapSlices: [
+//     [69, 22, 44, 42, 31],
+//     [62, 26, 67, 47, 29],
+//     [43, 39, 36, 60, 76],
+//     [65, 63, 70, 49, 68],
+//     [61, 38, 41, 37, 48],
+//     [30, 74, 80, 19, 45],
+//     [28, 27, 50, 23, 46],
+//     [59, 71, 40, 79, 72],
+//   ],
+//   playerSelections: [
+//     {
+//       playerId: "slim",
+//       speakerPosition: 2,
+//       slice: "c",
+//       faction: "xxcha",
+//     },
+//     {
+//       playerId: "slim2",
+//       speakerPosition: 4,
+//       slice: "a",
+//       faction: "jolnar",
+//     },
+//     {
+//       playerId: "slim3",
+//       speakerPosition: 6,
+//       slice: "g",
+//       faction: "nekro",
+//     },
+//     {
+//       playerId: "slim4",
+//       speakerPosition: 1,
+//       slice: "f",
+//       faction: "mentak",
+//     },
+//     {
+//       playerId: "slim5",
+//       speakerPosition: 5,
+//       slice: "b",
+//       faction: "mentak",
+//     },
+//     {
+//       playerId: "slim6",
+//       speakerPosition: 3,
+//       slice: "d",
+//       faction: "mentak",
+//     },
+//   ],
+// };
+
+// const state = {
+//   _id: { $oid: "64a627ae553dfe74e5494de1" },
+//   factions: [
+//     "arborec",
+//     "argent",
+//     "keleres",
+//     "l1z1x",
+//     "naazrokha",
+//     "nekro",
+//     "sol",
+//     "yin",
+//   ],
+//   draftPosition: 6,
+//   draftRound: 3,
+//   players: [
+//     "184613218340044800",
+//     "245429893041618954",
+//     "693714830196080641",
+//     "808868032361136129",
+//     "522504665561300992",
+//     "248782333665083393",
+//   ],
+//   keleres: null,
+//   slices: ["a", "b", "c", "d", "e", "f", "g", "h"],
+//   playerSelections: [
+//     {
+//       playerId: "184613218340044800",
+//       speakerPosition: "speaker_second",
+//       slice: "b",
+//       faction: "arborec",
+//     },
+//     {
+//       playerId: "245429893041618954",
+//       speakerPosition: "speaker_third",
+//       slice: "f",
+//       faction: "keleres",
+//     },
+//     {
+//       playerId: "693714830196080641",
+//       speakerPosition: "speaker_first",
+//       slice: "g",
+//       faction: "sol",
+//     },
+//     {
+//       playerId: "808868032361136129",
+//       speakerPosition: "speaker_fourth",
+//       slice: "e",
+//       faction: "argent",
+//     },
+//     {
+//       playerId: "522504665561300992",
+//       speakerPosition: "speaker_fifth",
+//       slice: "a",
+//       faction: "l1z1x",
+//     },
+//     {
+//       playerId: "248782333665083393",
+//       speakerPosition: "speaker_sixth",
+//       slice: "h",
+//       faction: "naazrokha",
+//     },
+//   ],
+//   threadId: "1126339724328583268",
+//   messageId: "1126339797250736258",
+//   mapSlices: [
+//     [79, 32, 23, 74, 67],
+//     [46, 59, 33, 68, 65],
+//     [26, 29, 43, 63, 44],
+//     [64, 69, 47, 22, 49],
+//     [77, 35, 40, 21, 37],
+//     [80, 66, 20, 28, 48],
+//     [70, 50, 24, 39, 34],
+//     [42, 62, 76, 36, 41],
+//   ],
+// };
 
 const mapPositions = (width, height) => {
   return [
@@ -265,9 +343,11 @@ const nameMapping = (index, numPlayers) => {
   return index;
 };
 
-export async function generateMap(state, playerNames) {
+export async function generateMap(state, playerNamesMap) {
   const sortedSpeaker = state.playerSelections.sort(
-    (playerA, playerB) => playerA.speakerPosition - playerB.speakerPosition
+    (playerA, playerB) =>
+      SPEAKER[playerA.speakerPosition].position -
+      SPEAKER[playerB.speakerPosition].position
   );
 
   const selectedFactions = addHyperLaneHS(
@@ -402,7 +482,8 @@ export async function generateMap(state, playerNames) {
       mapCanvasContext.fillStyle = "white";
       mapCanvasContext.textAlign = mapPosition[index].textAlign;
       mapCanvasContext.fillText(
-        playerNames?.[nameIndex] || "Name " + nameIndex,
+        playerNamesMap?.[sortedSpeaker[nameIndex].playerId] ||
+          "Name " + nameIndex,
         mapPosition[index].textX,
         mapPosition[index].textY + mapPosition[index].textOffsetY + heightOffset
       );

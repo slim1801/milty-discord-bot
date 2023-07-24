@@ -174,6 +174,8 @@ client.on(
 
       const editedSummaryMessage = summaryMessage(store);
 
+      collection.updateOne({ _id: store._id }, { $set: store });
+
       // Final Map
       if (store.draftRound > 2) {
         // Keleres exception
@@ -192,10 +194,26 @@ client.on(
 
       const yourPickMessage = pickMessage(store);
 
-      collection.updateOne({ _id: store._id }, { $set: store });
-
       await api.channels.editMessage(threadId, store.messageId, {
         content: editedSummaryMessage,
+      });
+
+      let emoji;
+      if (slice.value) {
+        emoji = getSliceEmoji(slice.value);
+      } else if (faction.value) {
+        emoji = getFactionEmoji(faction.value);
+      } else if (speaker.value) {
+        emoji = getSpeakerEmoji(speaker.value);
+      }
+
+      const pickedText = `<@${
+        store.players[store.draftPosition]
+      }> picked ${emoji}`;
+
+      await api.interactions.reply(interaction.id, interaction.token, {
+        content: pickedText,
+        flags: MessageFlags.Ephemeral,
       });
 
       await api.channels.createMessage(threadId, {
