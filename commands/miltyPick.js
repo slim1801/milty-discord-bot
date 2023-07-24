@@ -199,11 +199,11 @@ client.on(
       });
 
       let emoji;
-      if (slice.value) {
+      if (slice?.value) {
         emoji = getSliceEmoji(slice.value);
-      } else if (faction.value) {
+      } else if (faction?.value) {
         emoji = getFactionEmoji(faction.value);
-      } else if (speaker.value) {
+      } else if (speaker?.value) {
         emoji = getSpeakerEmoji(speaker.value);
       }
 
