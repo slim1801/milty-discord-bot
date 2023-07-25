@@ -150,12 +150,32 @@ client.on(
         return;
       }
 
+      let selection = undefined;
+      if (slice) {
+        selection = { slice: slice.value };
+      } else if (faction) {
+        selection = { faction: faction.value };
+      } else if (speaker) {
+        selection = { speakerPosition: speaker.value };
+      }
+
       store.playerSelections[draftPosition] = {
         ...store.playerSelections[draftPosition],
-        ...(slice?.value && { slice: slice.value }),
-        ...(faction?.value && { faction: faction.value }),
-        ...(speaker?.value && { speakerPosition: speaker.value }),
+        ...selection,
       };
+
+      let emoji;
+      if (slice?.value) {
+        emoji = getSliceEmoji(slice.value);
+      } else if (faction?.value) {
+        emoji = getFactionEmoji(faction.value);
+      } else if (speaker?.value) {
+        emoji = getSpeakerEmoji(speaker.value);
+      }
+
+      const pickedText = `<@${
+        store.players[store.draftPosition]
+      }> picked ${emoji}`;
 
       // Iterate draft
       if (draftRound === 0 || draftRound === 2) {
@@ -197,19 +217,6 @@ client.on(
       await api.channels.editMessage(threadId, store.messageId, {
         content: editedSummaryMessage,
       });
-
-      let emoji;
-      if (slice?.value) {
-        emoji = getSliceEmoji(slice.value);
-      } else if (faction?.value) {
-        emoji = getFactionEmoji(faction.value);
-      } else if (speaker?.value) {
-        emoji = getSpeakerEmoji(speaker.value);
-      }
-
-      const pickedText = `<@${
-        store.players[store.draftPosition]
-      }> picked ${emoji}`;
 
       await api.interactions.reply(interaction.id, interaction.token, {
         content: pickedText,

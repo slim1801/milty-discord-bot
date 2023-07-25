@@ -1,5 +1,6 @@
 import { GatewayDispatchEvents, Routes } from "@discordjs/core";
 
+import { ttsStringCommand } from "./commands/ttsString.js";
 import { miltyCommand } from "./commands/milty.js";
 import { miltyPickCommand } from "./commands/miltyPick.js";
 import { keleresPickCommand } from "./commands/keleresPick.js";
@@ -21,6 +22,7 @@ async function main() {
     keleresPickCommand,
     miltyCommand,
     miltyPickCommand,
+    ttsStringCommand,
   ];
   try {
     await rest.put(Routes.applicationGuildCommands(clientId, guildId), {
