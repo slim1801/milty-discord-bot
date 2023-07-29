@@ -1,7 +1,6 @@
 import { MessageFlags } from "@discordjs/core";
 
 import { generateMap } from "./generateMap.js";
-import { dbClient } from "../db.js";
 
 export async function generateFinalMap({ data: interaction, api }, store) {
   await api.interactions.reply(interaction.id, interaction.token, {

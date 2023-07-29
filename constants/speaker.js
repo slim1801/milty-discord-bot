@@ -36,3 +36,12 @@ export const SPEAKER = {
     emojiId: "1118508031567745045",
   },
 };
+
+export const SPEAKER_ORDER = [
+  SPEAKER.speaker_first,
+  SPEAKER.speaker_second,
+  SPEAKER.speaker_third,
+  SPEAKER.speaker_fourth,
+  SPEAKER.speaker_fifth,
+  SPEAKER.speaker_sixth,
+];

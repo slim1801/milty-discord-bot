@@ -6,6 +6,8 @@ import { miltyPickCommand } from "./commands/miltyPick.js";
 import { keleresPickCommand } from "./commands/keleresPick.js";
 import { generateFinalMapCommand } from "./commands/generateFinalMap.js";
 import { rest, gateway, client } from "./client.js";
+import "./buttons/buttonSelections.js";
+import "./buttons/keleresSelection.js";
 import { run } from "./db.js";
 
 run();

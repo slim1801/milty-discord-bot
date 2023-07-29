@@ -16,6 +16,7 @@ import { summaryMessage } from "../functions/summaryMessage.js";
 import { generateSlices } from "../functions/generateSlices.js";
 import { generateSliceImages } from "../functions/generateSliceImages.js";
 import { dbClient } from "../db.js";
+import { getRemainingButtonsActionRow } from "../functions/getRemainingButtonsActionRow.js";
 
 export const miltyCommand = new SlashCommandBuilder()
   .setName("milty")
@@ -93,7 +94,7 @@ client.on(
   GatewayDispatchEvents.InteractionCreate,
   async ({ data: interaction, api }) => {
     if (
-      interaction.type !== InteractionType.ApplicationCommand ||
+      interaction.type === InteractionType.ApplicationCommand &&
       interaction.data.name === "milty"
     ) {
       const optionMap = interaction.data.options?.reduce((acc, option) => {
@@ -182,6 +183,12 @@ client.on(
 
       await api.channels.createMessage(thread.id, {
         content: yourPickMessage,
+      });
+
+      const buttonActionRow = getRemainingButtonsActionRow(state);
+
+      await api.channels.createMessage(thread.id, {
+        components: [buttonActionRow],
       });
 
       return;

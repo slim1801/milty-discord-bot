@@ -1,4 +1,5 @@
 import {
+  ButtonStyle,
   ChannelType,
   GatewayDispatchEvents,
   InteractionType,
@@ -25,6 +26,7 @@ import {
   getRemainingSpeakerPositions,
 } from "../utils/remainingSelections.js";
 import { generateFinalMap } from "../functions/generateFinalMap.js";
+import { ActionRowBuilder, ButtonBuilder } from "discord.js";
 
 export const miltyPickCommand = new SlashCommandBuilder()
   .setName("milty_pick")
@@ -76,7 +78,7 @@ client.on(
   GatewayDispatchEvents.InteractionCreate,
   async ({ data: interaction, api }) => {
     if (
-      interaction.type !== InteractionType.ApplicationCommand ||
+      interaction.type === InteractionType.ApplicationCommand &&
       interaction.data.name === "milty_pick"
     ) {
       if (interaction.channel?.type !== ChannelType.PublicThread) {

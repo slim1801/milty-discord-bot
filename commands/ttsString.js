@@ -2,11 +2,9 @@ import { GatewayDispatchEvents, InteractionType } from "@discordjs/core";
 
 import { SlashCommandBuilder } from "@discordjs/builders";
 
-import { addHyperLaneHS } from "../utils/hyperLanes.js";
 import { SPEAKER } from "../constants/speaker.js";
 import { client } from "../client.js";
 import { getState } from "../functions/getState.js";
-import { getFactionHomeSystem } from "../utils/factions.js";
 
 export const ttsStringCommand = new SlashCommandBuilder()
   .setName("tts_string")
@@ -16,7 +14,7 @@ client.on(
   GatewayDispatchEvents.InteractionCreate,
   async ({ data: interaction, api }) => {
     if (
-      interaction.type !== InteractionType.ApplicationCommand ||
+      interaction.type === InteractionType.ApplicationCommand &&
       interaction.data.name === "tts_string"
     ) {
       const threadId = interaction.channel.id;

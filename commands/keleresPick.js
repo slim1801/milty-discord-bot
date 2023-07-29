@@ -41,7 +41,7 @@ client.on(
   GatewayDispatchEvents.InteractionCreate,
   async ({ data: interaction, api }) => {
     if (
-      interaction.type !== InteractionType.ApplicationCommand ||
+      interaction.type === InteractionType.ApplicationCommand &&
       interaction.data.name === "keleres_pick"
     ) {
       const home_system = interaction.data.options?.find(
