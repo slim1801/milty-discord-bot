@@ -142,7 +142,7 @@ client.on(
       try {
         mapSlices = generateSlices({
           numSlices,
-          hasLegendaries: optionMap.more_wormholes_legend?.value,
+          hasLegendaries: optionMap.more_wormholes_legend?.value || true,
           mininf: optionMap.min_optimal_influence?.value || 4,
           minres: optionMap.min_optimal_resource?.value || 2.5,
           mintot: optionMap.min_optimal_total?.value || 9,

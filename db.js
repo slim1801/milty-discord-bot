@@ -21,7 +21,9 @@ export async function run() {
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
-  } catch {
+  } catch (e) {
+    console.log("DB failed to connect");
+    console.log(e);
     await dbClient.close();
   }
 }
