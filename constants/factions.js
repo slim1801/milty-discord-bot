@@ -148,6 +148,7 @@ export const FACTION_DETAILS_MAP = {
   },
   nomad: {
     id: "nomad",
+    shortName: "Nomad",
     name: "The Nomad",
     emojiId: "1118489508162318336",
     hs: 53,
